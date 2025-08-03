@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Sistema de Controle de Tempo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+    <div>
+        <a href="{% url 'time_tracking:nova_tarefa' %}" class="btn btn-primary me-2">
+            <i class="bi bi-plus-circle"></i> Nova Tarefa
+        </a>
+        <a href="{% url 'time_tracking:novo_registro' %}" class="btn btn-success">
+            <i class="bi bi-clock"></i> Novo Registro
+        </a>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-list-task fs-1 mb-2"></i>
+                <div class="stats-number">{{ total_tarefas }}</div>
+                <div>Total de Tarefas</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fs-1 mb-2"></i>
+                <div class="stats-number">{{ tarefas_ativas }}</div>
+                <div>Tarefas Ativas</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-clock-history fs-1 mb-2"></i>
+                <div class="stats-number">{{ total_horas|floatformat:1 }}</div>
+                <div>Horas Totais</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-week fs-1 mb-2"></i>
+                <div class="stats-number">{{ horas_semana|floatformat:1 }}</div>
+                <div>Horas Esta Semana</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Tarefas Recentes -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-task"></i> Tarefas Recentes
+                </h5>
+                <a href="{% url 'time_tracking:lista_tarefas' %}" class="btn btn-sm btn-outline-primary">
+                    Ver Todas
+                </a>
+            </div>
+            <div class="card-body">
+                {% if tarefas_recentes %}
+                    <div class="list-group list-group-flush">
+                        {% for tarefa in tarefas_recentes %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'time_tracking:detalhes_tarefa' tarefa.pk %}" 
+                                               class="text-decoration-none">
+                                                {{ tarefa.descricao|truncatewords:10 }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> 
+                                            {{ tarefa.data_criacao|date:"d/m/Y H:i" }}
+                                        </small>
+                                        <br>
+                                        <span class="badge {% if tarefa.ativa %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if tarefa.ativa %}Ativa{% else %}Inativa{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ tarefa.total_horas }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-2">Nenhuma tarefa encontrada</p>
+                        <a href="{% url 'time_tracking:nova_tarefa' %}" class="btn btn-primary">
+                            Criar Primeira Tarefa
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Registros Recentes -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Registros Recentes
+                </h5>
+                <a href="{% url 'time_tracking:lista_registros' %}" class="btn btn-sm btn-outline-primary">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if registros_recentes %}
+                    <div class="list-group list-group-flush">
+                        {% for registro in registros_recentes %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'time_tracking:detalhes_tarefa' registro.tarefa.pk %}" 
+                                               class="text-decoration-none">
+                                                {{ registro.tarefa.descricao|truncatewords:8 }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ registro.descricao_trabalho|truncatewords:5 }}
+                                        </small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> 
+                                            {{ registro.data_registro|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">{{ registro.horas_trabalhadas }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock fs-1"></i>
+                        <p class="mt-2">Nenhum registro encontrado</p>
+                        <a href="{% url 'time_tracking:novo_registro' %}" class="btn btn-success">
+                            Criar Primeiro Registro
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Links Rápidos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning"></i> Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'time_tracking:nova_tarefa' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-plus-circle"></i> Nova Tarefa
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'time_tracking:novo_registro' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-clock"></i> Novo Registro
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'time_tracking:lista_tarefas' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-list-task"></i> Ver Tarefas
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'time_tracking:lista_registros' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-clock-history"></i> Ver Registros
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

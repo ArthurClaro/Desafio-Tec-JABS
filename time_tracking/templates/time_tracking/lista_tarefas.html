@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Tarefas - Sistema de Controle de Tempo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-list-task"></i> Tarefas</h1>
+    <a href="{% url 'time_tracking:nova_tarefa' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nova Tarefa
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtros</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label for="search" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search }}" placeholder="Buscar por descrição...">
+            </div>
+            <div class="col-md-4">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Todos</option>
+                    <option value="ativas" {% if status_filter == 'ativas' %}selected{% endif %}>Ativas</option>
+                    <option value="inativas" {% if status_filter == 'inativas' %}selected{% endif %}>Inativas</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Tarefas -->
+{% if tarefas %}
+    <div class="row">
+        {% for tarefa in tarefas %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="badge {% if tarefa.ativa %}bg-success{% else %}bg-secondary{% endif %}">
+                            {% if tarefa.ativa %}Ativa{% else %}Inativa{% endif %}
+                        </span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'time_tracking:detalhes_tarefa' tarefa.pk %}">
+                                        <i class="bi bi-eye"></i> Ver Detalhes
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'time_tracking:editar_tarefa' tarefa.pk %}">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'time_tracking:novo_registro' %}?tarefa={{ tarefa.pk }}">
+                                        <i class="bi bi-clock"></i> Adicionar Registro
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'time_tracking:detalhes_tarefa' tarefa.pk %}" 
+                               class="text-decoration-none">
+                                {{ tarefa.descricao|truncatewords:15 }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">
+                            {{ tarefa.descricao|truncatewords:20 }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> 
+                                {{ tarefa.data_criacao|date:"d/m/Y" }}
+                            </small>
+                            <span class="badge bg-info">{{ tarefa.total_horas }}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-clock-history"></i> 
+                                {{ tarefa.registros_tempo.count }} registros
+                            </small>
+                            <a href="{% url 'time_tracking:detalhes_tarefa' tarefa.pk %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                Ver Detalhes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginação -->
+    {% if is_paginated %}
+        <nav aria-label="Paginação de tarefas">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+        <h3 class="text-muted mt-3">Nenhuma tarefa encontrada</h3>
+        <p class="text-muted">
+            {% if search or status_filter %}
+                Tente ajustar os filtros ou criar uma nova tarefa.
+            {% else %}
+                Comece criando sua primeira tarefa para organizar seu tempo.
+            {% endif %}
+        </p>
+        <a href="{% url 'time_tracking:nova_tarefa' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Criar Primeira Tarefa
+        </a>
+    </div>
+{% endif %}
+{% endblock %} 

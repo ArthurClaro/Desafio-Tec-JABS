@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - Sistema de Controle de Tempo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="bi bi-clock"></i> {{ titulo }}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Tarefa -->
+                    <div class="mb-3">
+                        <label for="{{ form.tarefa.id_for_label }}" class="form-label">
+                            {{ form.tarefa.label }}
+                        </label>
+                        {{ form.tarefa }}
+                        {% if form.tarefa.help_text %}
+                            <div class="form-text">{{ form.tarefa.help_text }}</div>
+                        {% endif %}
+                        {% if form.tarefa.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.tarefa.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Data do Registro -->
+                    <div class="mb-3">
+                        <label for="{{ form.data_registro.id_for_label }}" class="form-label">
+                            {{ form.data_registro.label }}
+                        </label>
+                        {{ form.data_registro }}
+                        {% if form.data_registro.help_text %}
+                            <div class="form-text">{{ form.data_registro.help_text }}</div>
+                        {% endif %}
+                        {% if form.data_registro.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.data_registro.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Tempo Trabalhado -->
+                    <div class="mb-3">
+                        <label for="{{ form.tempo_trabalhado.id_for_label }}" class="form-label">
+                            {{ form.tempo_trabalhado.label }}
+                        </label>
+                        {{ form.tempo_trabalhado }}
+                        {% if form.tempo_trabalhado.help_text %}
+                            <div class="form-text">{{ form.tempo_trabalhado.help_text }}</div>
+                        {% endif %}
+                        {% if form.tempo_trabalhado.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.tempo_trabalhado.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Descrição do Trabalho -->
+                    <div class="mb-4">
+                        <label for="{{ form.descricao_trabalho.id_for_label }}" class="form-label">
+                            {{ form.descricao_trabalho.label }}
+                        </label>
+                        {{ form.descricao_trabalho }}
+                        {% if form.descricao_trabalho.help_text %}
+                            <div class="form-text">{{ form.descricao_trabalho.help_text }}</div>
+                        {% endif %}
+                        {% if form.descricao_trabalho.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.descricao_trabalho.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Botões -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'time_tracking:lista_registros' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Informações adicionais -->
+        {% if registro %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Informações do Registro
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Tarefa:</strong> 
+                                <a href="{% url 'time_tracking:detalhes_tarefa' registro.tarefa.pk %}">
+                                    {{ registro.tarefa.descricao|truncatewords:10 }}
+                                </a>
+                            </p>
+                            <p><strong>Criado em:</strong> {{ registro.data_criacao|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Tempo:</strong> {{ registro.horas_trabalhadas }}</p>
+                            <p><strong>Data do Registro:</strong> {{ registro.data_registro|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-resize textarea
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.querySelector('textarea');
+        if (textarea) {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+        }
+        
+        // Definir data atual como padrão se não estiver preenchida
+        const dataInput = document.querySelector('input[type="date"]');
+        if (dataInput && !dataInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dataInput.value = today;
+        }
+    });
+</script>
+{% endblock %} 
